@@ -1,102 +1,176 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Image, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import axios from 'axios';
+import { Picker } from '@react-native-picker/picker';
+import { BarChart } from 'react-native-chart-kit';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const TabTwoScreen = () => {
+  const [text, setText] = useState<string>('');
+  const [key, setKey] = useState<string>('');
+  const [result, setResult] = useState<string>('');
+  const [method, setMethod] = useState<string>('caesar');
+  const [chartData, setChartData] = useState<number[]>([]);
+  const [labels, setLabels] = useState<string[]>([]);
 
-export default function TabTwoScreen() {
+  const caesarCipher = (str: string, shift: number): string => {
+    return str.replace(/[a-z]/gi, (char) => {
+      const start = char <= 'Z' ? 65 : 97;
+      return String.fromCharCode(((char.charCodeAt(0) - start + shift) % 26) + start);
+    });
+  };
+
+  const xorCipher = (str: string, key: number): string => {
+    return str.split('').map(char => String.fromCharCode(char.charCodeAt(0) ^ key)).join('');
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/data');
+        const data = response.data;
+
+        setChartData(data.map((entry: { text: string }) => entry.text.length));
+        setLabels(data.map((_: any, index: number) => `Текст ${index + 1}`));
+      } catch (error) {
+        console.error('Помилка при завантаженні даних:', error);
+      }
+    };
+
+    fetchData();
+  }, []); 
+
+  const handleEncrypt = async () => {
+    let encryptedText = '';
+
+    if (method === 'caesar') {
+      const shift = parseInt(key);
+      encryptedText = caesarCipher(text, shift);
+    } else if (method === 'xor') {
+      const xorKey = parseInt(key);
+      encryptedText = xorCipher(text, xorKey);
+    }
+
+    try {
+      await axios.post('http://localhost:3000/save', {
+        text: encryptedText,
+        method,
+        key
+      });
+      setResult(`Зашифрований текст (${method}): ${encryptedText}`);
+
+      setChartData((prevData) => [...prevData, encryptedText.length]);
+      setLabels((prevLabels) => [...prevLabels, `Текст ${labels.length + 1}`]);
+
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDecrypt = async () => {
+    try {
+      const response = await axios.post('http://localhost:3000/decrypt', {
+        text,
+        method,
+        key
+      });
+
+      if (response.data.decrypted) {
+        let decryptedText = '';
+
+        if (method === 'caesar') {
+          const shift = parseInt(key);
+          decryptedText = caesarCipher(text, -shift);
+        } else if (method === 'xor') {
+          const xorKey = parseInt(key);
+          decryptedText = xorCipher(text, xorKey);
+        }
+
+        setResult(`Розшифрований текст: ${decryptedText}`);
+      } else {
+        Alert.alert('Текст не знайдено в базі');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Помилка при розшифруванні');
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={<Ionicons size={310} name="code-slash" style={styles.headerImage} />}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user's current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText> library
-          to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <Text>Введіть текст для шифрування/дешифрування:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Введіть текст"
+        value={text}
+        onChangeText={setText}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Введіть ключ"
+        keyboardType="numeric"
+        value={key}
+        onChangeText={setKey}
+      />
+
+      <Text>Виберіть метод шифрування:</Text>
+      <Picker
+        selectedValue={method}
+        style={styles.picker}
+        onValueChange={(itemValue: string) => setMethod(itemValue)}
+      >
+        <Picker.Item label="Цезар" value="caesar" />
+        <Picker.Item label="XOR" value="xor" />
+      </Picker>
+
+      <Button title="Зашифрувати" onPress={handleEncrypt} />
+      <Button title="Розшифрувати" onPress={handleDecrypt} />
+      <Text>{result}</Text>
+
+      {chartData.length > 0 && (
+        <BarChart
+          data={{
+            labels: labels,
+            datasets: [{ data: chartData }]
+          }}
+          width={300}
+          height={200}
+          yAxisLabel=""
+          yAxisSuffix=""
+          chartConfig={{
+            backgroundColor: '#1cc910',
+            backgroundGradientFrom: '#eff3ff',
+            backgroundGradientTo: '#efefef',
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`
+          }}
+          style={{ marginVertical: 20 }}
+        />
+      )}
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    marginBottom: 10,
   },
 });
+
+export default TabTwoScreen;
