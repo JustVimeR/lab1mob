@@ -1,22 +1,32 @@
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function HomeScreen() {
   return (
-   <View>
-    <Text>First</Text>
+   <View style={styles.container}>
+    <Text style={styles.text}>Лабораторна робота 1</Text>
+    <Text style={styles.text}>З навчального курсу «Розробка ПЗ під мобільні платформи»</Text>
+    <Text style={styles.text}>Шифрування тексту методами Цезаря та XOR</Text>
+
+    <Text style={styles.text}>Роботу виконав</Text>
+    <Text style={styles.text}>Студент 4-го курсу групи ТТП-41</Text>
+    <Text style={styles.text}>Таран Владислав</Text>
    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  text: {
+    fontSize: 18,
+    fontWeight: 500,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   reactLogo: {
     height: 178,

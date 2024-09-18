@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { BarChart } from 'react-native-chart-kit';
 import { useEncryption } from '../../hooks/useEncryption';
@@ -23,7 +23,7 @@ const TabTwoScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text>Введіть текст для шифрування/дешифрування:</Text>
+      <Text style={styles.text}>Введіть текст для шифрування/дешифрування:</Text>
       <TextInput
         style={styles.input}
         placeholder="Введіть текст"
@@ -38,7 +38,7 @@ const TabTwoScreen = () => {
         onChangeText={setKey}
       />
 
-      <Text>Виберіть метод шифрування:</Text>
+      <Text style={styles.text}>Виберіть метод шифрування:</Text>
       <Picker
         selectedValue={method}
         style={styles.picker}
@@ -47,10 +47,11 @@ const TabTwoScreen = () => {
         <Picker.Item label="Цезар" value="caesar" />
         <Picker.Item label="XOR" value="xor" />
       </Picker>
-
-      <Button title="Зашифрувати" onPress={handleEncrypt} />
-      <Button title="Розшифрувати" onPress={handleDecrypt} />
-      <Text>{result}</Text>
+      <View style={styles.buttonContainer}>
+        <Button title="Зашифрувати" onPress={handleEncrypt} />
+        <Button title="Розшифрувати" onPress={handleDecrypt} />
+      </View>
+      <Text style={styles.text}>{result}</Text>
 
       {chartData.length > 0 && (
         <BarChart
@@ -83,6 +84,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
+  },
+  buttonContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 8,
+    marginVertical: 8
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: 500,
+    marginBottom: 6
   },
   input: {
     height: 40,
