@@ -2,23 +2,38 @@ import { useState } from 'react';
 import axios from 'axios';
 
 const caesarCipher = (str: string, shift: number): string => {
-    return str.split('').map((char) => {
-      if (/[a-zA-Z]/.test(char)) {
-        const isUpperCase = char <= 'Z';
-        const start = isUpperCase ? 65 : 97;
-  
-        return String.fromCharCode(((char.charCodeAt(0) - start + shift + 26) % 26) + start);
-      }
-      return char;
-    }).join('');
-  };
-  
-  const caesarDecipher = (str: string, shift: number): string => {
-    return caesarCipher(str, -shift);
-  };
-  
-  
+  const alphabetUA = 'АБВГДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ';
+  const alphabetEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+  return str.split('').map((char) => {
+    if (/[A-Z]/.test(char)) {
+      return shiftChar(char, shift, alphabetEN);
+    }
+    if (/[a-z]/.test(char)) {
+      return shiftChar(char, shift, alphabetEN.toLowerCase());
+    }
+    if (/[А-Я]/.test(char)) {
+      return shiftChar(char, shift, alphabetUA);
+    }
+    if (/[а-я]/.test(char)) {
+      return shiftChar(char, shift, alphabetUA.toLowerCase());
+    }
+    return char;
+  }).join('');
+};
+
+const shiftChar = (char: string, shift: number, alphabet: string): string => {
+  const index = alphabet.indexOf(char);
+  if (index === -1) return char;
+  const newIndex = (index + shift + alphabet.length) % alphabet.length;
+  return alphabet[newIndex];
+};
+
+const caesarDecipher = (str: string, shift: number): string => {
+  return caesarCipher(str, -shift);
+};
+
+  
 const xorCipher = (str: string, key: number): string => {
   return str.split('').map(char => String.fromCharCode(char.charCodeAt(0) ^ key)).join('');
 };
@@ -27,6 +42,17 @@ export const useEncryption = () => {
   const [result, setResult] = useState<string>('');
 
   const encrypt = async (text: string, key: string, method: string) => {
+    if (!text.trim()) {
+      alert('Текст для шифрування не може бути порожнім');
+      return;
+    }
+  
+    // Перевірка, чи ключ є числом
+    if (!/^\d+$/.test(key)) {
+      alert('Ключ має містити лише цифри або не бути порожнім');
+      return;
+    }
+
     let encryptedText = '';
 
     if (method === 'caesar') {
