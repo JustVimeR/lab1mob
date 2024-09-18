@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { BarChart } from 'react-native-chart-kit';
+import { PieChart } from 'react-native-chart-kit';
 import { useEncryption } from '../../hooks/useEncryption';
 import { useChartData } from '../../hooks/useChartData';
 
@@ -54,23 +54,28 @@ const TabTwoScreen = () => {
       <Text style={styles.text}>{result}</Text>
 
       {chartData.length > 0 && (
-        <BarChart
-          data={{
-            labels: labels,
-            datasets: [{ data: chartData }]
-          }}
-          width={300}
-          height={200}
-          yAxisLabel=""
-          yAxisSuffix=""
+        <PieChart
+          data={
+            labels.map((label, index) => ({
+              name: label,
+              population: chartData[index],
+              color: `rgba(0, ${index * 50}, ${index * 50}, 1)`,
+              legendFontColor: '#7F7F7F',
+              legendFontSize: 15,
+            }))
+          }
+          width={300} 
+          height={220} 
           chartConfig={{
             backgroundColor: '#1cc910',
             backgroundGradientFrom: '#eff3ff',
             backgroundGradientTo: '#efefef',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`
+            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           }}
-          style={{ marginVertical: 20 }}
+          accessor="population" 
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute 
         />
       )}
     </View>
