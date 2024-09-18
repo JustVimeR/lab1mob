@@ -47,7 +47,6 @@ export const useEncryption = () => {
       return;
     }
   
-    // Перевірка, чи ключ є числом
     if (!/^\d+$/.test(key)) {
       alert('Ключ має містити лише цифри або не бути порожнім');
       return;
