@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, TextInput, Button, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { PieChart } from 'react-native-chart-kit';
+import axios from 'axios';
 import { useEncryption } from '../../hooks/useEncryption';
 import { useChartData } from '../../hooks/useChartData';
 
@@ -9,8 +10,23 @@ const TabTwoScreen = () => {
   const [text, setText] = useState<string>('');
   const [key, setKey] = useState<string>('');
   const [method, setMethod] = useState<string>('caesar');
+  const [texts, setTexts] = useState<any[]>([]); 
+  const [selectedText, setSelectedText] = useState<string>(''); 
   const { result, encrypt, decrypt } = useEncryption();
   const { chartData, labels, addData } = useChartData();
+
+  const fetchTexts = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/data');
+      setTexts(response.data);
+    } catch (error) {
+      console.error('Помилка при завантаженні текстів:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTexts();
+  }, []);
 
   const handleEncrypt = async () => {
     await encrypt(text, key, method);
@@ -19,6 +35,31 @@ const TabTwoScreen = () => {
 
   const handleDecrypt = async () => {
     await decrypt(text, key, method);
+  };
+
+  const handleDelete = async () => {
+    if (!selectedText) {
+      Alert.alert('Помилка', 'Виберіть текст для видалення');
+      return;
+    }
+
+    const [selectedEntry] = texts.filter(entry => entry.text === selectedText);
+
+    if (!selectedEntry) {
+      Alert.alert('Помилка', 'Текст не знайдено');
+      return;
+    }
+
+    try {
+      await axios.delete('http://localhost:3000/delete', {
+        data: { text: selectedEntry.text, method: selectedEntry.method, key: selectedEntry.key },
+      });
+      Alert.alert('Успіх', 'Текст успішно видалено');
+      fetchTexts();
+    } catch (error) {
+      console.error('Помилка при видаленні тексту:', error);
+      Alert.alert('Помилка', 'Текст не вдалося видалити');
+    }
   };
 
   return (
@@ -64,20 +105,32 @@ const TabTwoScreen = () => {
               legendFontSize: 15,
             }))
           }
-          width={300} 
-          height={220} 
+          width={300}
+          height={220}
           chartConfig={{
             backgroundColor: '#1cc910',
             backgroundGradientFrom: '#eff3ff',
             backgroundGradientTo: '#efefef',
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           }}
-          accessor="population" 
+          accessor="population"
           backgroundColor="transparent"
           paddingLeft="15"
-          absolute 
+          absolute
         />
       )}
+
+      <Text style={styles.text}>Виберіть текст для видалення:</Text>
+      <Picker
+        selectedValue={selectedText}
+        style={styles.picker}
+        onValueChange={(itemValue: string) => setSelectedText(itemValue)}
+      >
+        {texts.map((entry, index) => (
+          <Picker.Item key={index} label={entry.text} value={entry.text} />
+        ))}
+      </Picker>
+      <Button title="Видалити текст" onPress={handleDelete} />
     </View>
   );
 };
@@ -94,12 +147,12 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     gap: 8,
-    marginVertical: 8
+    marginVertical: 8,
   },
   text: {
     fontSize: 16,
-    fontWeight: 500,
-    marginBottom: 6
+    fontWeight: '500',
+    marginBottom: 6,
   },
   input: {
     height: 40,
