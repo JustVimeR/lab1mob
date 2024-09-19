@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image } from 'react-native';
 
 export default function HomeScreen() {
   return (
    <View style={styles.container}>
+    <Image source={require('../../assets/images/Anya_forger.webp')} style={styles.image} />
     <Text style={styles.text}>Лабораторна робота 1</Text>
     <Text style={styles.text}>З навчального курсу «Розробка ПЗ під мобільні платформи»</Text>
     <Text style={styles.text}>Шифрування тексту методами Цезаря та XOR</Text>
@@ -24,15 +25,13 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 18,
-    fontWeight: 500,
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 10,
   },
-  reactLogo: {
-    height: 178,
+  image: {
     width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+    height: 178,
+    marginBottom: 20,
   },
 });

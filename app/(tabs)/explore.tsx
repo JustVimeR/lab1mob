@@ -59,7 +59,7 @@ const TabTwoScreen = () => {
             labels.map((label, index) => ({
               name: label,
               population: chartData[index],
-              color: `rgba(0, ${index * 50}, ${index * 50}, 1)`,
+              color: `rgba(0, ${index * 50}, ${index * 100}, 1)`,
               legendFontColor: '#7F7F7F',
               legendFontSize: 15,
             }))
